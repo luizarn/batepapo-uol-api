@@ -121,16 +121,15 @@ server.get("/messages", async (req, res) => {
   );
 
   res.send(visibleMessages.splice(-limit))
-
 })
 
 server.post("/status", async (req, res) => {
   const { user } = req.headers
   try {
     const userExists = await db.collection("participants.name").findOne({ name: user })
-    if(!userExists) return res.sendStatus(404)
+    if (!userExists) return res.sendStatus(404)
 
-    await db.collection("participants").updatetOne({ name:user }, { $set: { lastStatus: Date.now() } })
+    await db.collection("participants").updatetOne({ name: user }, { $set: { lastStatus: Date.now() } })
     res.sendStatus(200)
 
   } catch {
@@ -139,15 +138,14 @@ server.post("/status", async (req, res) => {
 })
 
 
-
-  setInterval (async () => {
-    let participants =  await db.collection("participants").find().toArray()
+setInterval(async () => {
+  let participants = await db.collection("participants").find().toArray()
 
   participants.forEach(async p => {
-    if(Date.now() - p.lastStatus > 10000){
-      await db.collection("participants").deleteOne({name: p.name})
+    if (Date.now() - p.lastStatus > 10000) {
+      await db.collection("participants").deleteOne({ name: p.name })
 
-      await db.collection("messages").insertOne({from: p.name, to: 'Todos', text: 'sai da sala...', type: 'status', time: date})
+      await db.collection("messages").insertOne({ from: p.name, to: 'Todos', text: 'sai da sala...', type: 'status', time: date })
     }
   })
 }, 15000)
