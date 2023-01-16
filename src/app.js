@@ -53,7 +53,7 @@ try {
   
       await db.collection("participants").insertOne({ name: participant.name, lastStatus: Date.now() })
 
-     await db.collection("messages").findOne({ from: participant.name, to: "Todos", text: "entra na sala...", type: "status", time: date})
+      await db.collection("messages").insertOne({ from: participant.name, to: "Todos", text: "entra na sala...", type: "status", time: date})
 
       res.status(201).send("Usuário criado!")
   
