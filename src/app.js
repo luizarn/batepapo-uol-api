@@ -29,17 +29,17 @@ server.post("/participants", async (req, res) => {
   const participant = req.body
 
   const participantSchema = joi.object({
-      name: joi.string().required()
+    name: joi.string().required()
   })
 
-  const validation = participantSchema.validate(participant, {pick: "name", abortEarly:false})
+  const validation = participantSchema.validate(participant, { pick: "name", abortEarly: false })
   console.log(validation)
 
-  if (validation.error){
-      const errors = validation.error.details.map((err) => {
-          return err.message
-      })
-      return res.status(422).send(errors)
+  if (validation.error) {
+    const errors = validation.error.details.map((err) => {
+      return err.message
+    })
+    return res.status(422).send(errors)
   }
 
 
@@ -51,11 +51,9 @@ server.post("/participants", async (req, res) => {
 
     await db.collection("participants").insertOne({ name: participant.name, lastStatus: Date.now() })
 
-    res.send("ok")
-
-   await db.collection("messages").findOne({ from: participant.name, to: "Todos", text: "entra na sala...", type: "status", time: date})
-
-    res.sendStatus(201)
+    await db.collection("messages").insertOne({ from: participant.name, to: "Todos", text: "entra na sala...", type: "status", time: date })
+    
+    res.status(201).send("Usuário criado!")
 
   } catch (err) {
     console.log(err)
