@@ -64,5 +64,13 @@ try {
     }
   })
 
+  server.get("/participants", async (req, res) => {
+    db.collection("participants").find().toArray().then(data => {
+      return res.send(data)
+    }).catch(() => {
+      res.status(500).send("Deu zica no servidor de banco de dados")
+    })
+  })
+
 
 server.listen(5000, () => console.log(chalk.blue('Servidor roudou de boas aqui')))
