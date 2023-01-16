@@ -42,23 +42,19 @@ server.post("/participants", async (req, res) => {
     return res.status(422).send(errors)
   }
 
-
-  
-
     const nameExists = await db.collection("participants").findOne({ name: participant.name })
 
-    if (nameExists) return res.status(409).send("Esse nome já está cadastrado!")
-
-    try{
+    if (!nameExists){
+    try {
     await db.collection("participants").insertOne({ name: participant.name, lastStatus: Date.now() })
-
+    } catch (err) {
+    console.log(err)
+    }
     await db.collection("messages").insertOne({ from: participant.name, to: "Todos", text: "entra na sala...", type: "status", time: date })
 
     res.status(201).send("Usuário criado!")
-
-  } catch (err) {
-    console.log(err)
   }
+  return res.status(409).send("Esse nome já está cadastrado!")
 })
 
 server.get("/participants", async (req, res) => {
