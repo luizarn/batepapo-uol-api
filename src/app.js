@@ -52,12 +52,10 @@ try {
       if (nameExists) return res.status(409).send("Esse nome já está cadastrado!")
   
       await db.collection("participants").insertOne({ name: participant.name, lastStatus: Date.now() })
-  
-      res.send("ok")
 
      await db.collection("messages").findOne({ from: participant.name, to: "Todos", text: "entra na sala...", type: "status", time: date})
 
-      res.sendStatus(201)
+      res.status(201).send("Usuário criado!")
   
     } catch (err) {
       console.log(err)
