@@ -18,7 +18,7 @@ let lastMessages;
 
 try {
   await mongoClient.connect()
-  db = mongoClient.db("batepapo")
+  db = mongoClient.db()
   console.log('Deu bom no server')
 } catch (error) {
   console.log('Deu errro no server')
