@@ -90,12 +90,16 @@ server.post("/messages", async (req, res) => {
 
   try {
 
-    let userExists = await db.collection("participants.name").findOne({ name: user })
+    let userExists = await db.collection("participants").findOne({ name: user })
 
   } catch {
-    res.sendStatus(422)
+    console.log("Error checking user name");
+    userExists = false;
   }
 
+  if(!userExists){
+    return res.sendStatus(422)
+  }
 
   try {
     await db.collection("messages").insertOne({ from: user, to: message.to, text: message.text, type: message.type, time: date })
@@ -104,6 +108,7 @@ server.post("/messages", async (req, res) => {
 
   } catch (err) {
     console.log(err)
+    return res.sendStatus(422)
   }
 })
 
@@ -111,6 +116,13 @@ server.get("/messages", async (req, res) => {
   let { limit } = req.query
   let { user } = req.headers
   const messages = await db.collection("messages").find().toArray()
+
+  if (limit) {
+    let numberLimit = parseInt(limit);
+    if (numberLimit < 1 || isNaN(numberLimit)) {
+        return res.sendStatus(422)
+    }
+}
 
   let visibleMessages = messages.filter((m) =>
     m.user === user ||
@@ -126,7 +138,7 @@ server.get("/messages", async (req, res) => {
 server.post("/status", async (req, res) => {
   const { user } = req.headers
   try {
-    const userExists = await db.collection("participants.name").findOne({ name: user })
+    const userExists = await db.collection("participants").findOne({ name: user })
     if (!userExists) return res.sendStatus(404)
 
     await db.collection("participants").updatetOne({ name: user }, { $set: { lastStatus: Date.now() } })
