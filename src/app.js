@@ -43,12 +43,13 @@ server.post("/participants", async (req, res) => {
   }
 
 
-  try {
+  
 
     const nameExists = await db.collection("participants").findOne({ name: participant.name })
 
     if (nameExists) return res.status(409).send("Esse nome já está cadastrado!")
 
+    try{
     await db.collection("participants").insertOne({ name: participant.name, lastStatus: Date.now() })
 
     await db.collection("messages").insertOne({ from: participant.name, to: "Todos", text: "entra na sala...", type: "status", time: date })
