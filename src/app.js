@@ -99,17 +99,18 @@ server.post("/messages", async (req, res) => {
 })
 
 server.get("/messages", async (req, res) => {
-  let limit = parseInt(req.query.limit)
+  let limit;
   let { user } = req.headers
   const messages = await db.collection("messages").find().toArray()
 
 
-  if(limit){
+  if (req.query.limit) {
+    limit = parseInt(req.query.limit);
     if (limit < 1 || isNaN(limit)) {
-      return res.sendStatus(422)
-  }
-  }
-
+        res.status(422).send("Limite inválido");
+        return;
+    }
+}
 
 
   let visibleMessages = messages.filter((m) =>
@@ -124,7 +125,7 @@ server.get("/messages", async (req, res) => {
 })
 
 server.post("/status", async (req, res) => {
-  const { user } = req.headers
+  let { user } = req.headers
   try {
     const userExists = await db.collection("participants").findOne({ name: user })
     if (!userExists) return res.sendStatus(404)
@@ -139,14 +140,14 @@ server.post("/status", async (req, res) => {
 
 
 setInterval(async () => {
-  let participants = await db.collection("participants").find().toArray()
+  let participants = await db.collection("participants").find({ lastStatus: {$lte: Date.now() - 10000}}).toArray()
 
   participants.forEach(async p => {
-    if (Date.now() - p.lastStatus > 10000) {
+    
       await db.collection("participants").deleteOne({ name: p.name })
 
       await db.collection("messages").insertOne({ from: p.name, to: 'Todos', text: 'sai da sala...', type: 'status', time: date })
-    }
+    
   })
 }, 15000)
 
