@@ -131,7 +131,7 @@ server.post("/status", async (req, res) => {
 
     if (!userExists) return res.sendStatus(404)
 
-    await db.collection("participants").updatetOne({ name: user }, { $set: { name: user, lastStatus: Date.now() }})
+    await db.collection("participants").updateOne({ name: user }, { $set: { name: user, lastStatus: Date.now() }})
     res.status(200).send("participante atualizado!")
 
 })
