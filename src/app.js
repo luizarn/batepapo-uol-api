@@ -69,16 +69,17 @@ server.get("/participants", async (req, res) => {
 })
 
 server.post("/messages", async (req, res) => {
-  const message = req.body
+  const { to, text, type} = req.body
   const { user } = req.headers
 
   const messageSchema = joi.object({
+    from: joi.string().required(),
     to: joi.string().required(),
     text: joi.string().required(),
     type: joi.string().valid('message', 'private_message').required()
   })
 
-  const validation = messageSchema.validate(message, { pick: ['to', 'text', 'type'], abortEarly: false })
+  const validation = messageSchema.validate({to, text, type, from: user}, { abortEarly: false })
   console.log(validation)
 
   if (validation.error) {
@@ -88,41 +89,36 @@ server.post("/messages", async (req, res) => {
     return res.status(422).send(errors)
   }
 
-  try {
 
+
+  try {
     let userExists = await db.collection("participants").findOne({ name: user })
 
-  } catch {
-    console.log("Error checking user name");
-    userExists = false;
-  }
+    if(!userExists) return res.sendStatus(422)
 
-  if(!userExists){
-    return res.sendStatus(422)
-  }
-
-  try {
     await db.collection("messages").insertOne({ from: user, to: message.to, text: message.text, type: message.type, time: date })
 
     res.status(201).send("Mensagem enviada!")
 
   } catch (err) {
     console.log(err)
-    return res.sendStatus(422)
+    return res.sendStatus(500)
   }
 })
 
 server.get("/messages", async (req, res) => {
-  let { limit } = req.query
+  let limit = parseInt(req.query.limit)
   let { user } = req.headers
   const messages = await db.collection("messages").find().toArray()
 
-  if (limit) {
-    let numberLimit = parseInt(limit);
-    if (numberLimit < 1 || isNaN(numberLimit)) {
-        return res.sendStatus(422)
-    }
-}
+
+  if(limit){
+    if (limit < 1 || isNaN(limit)) {
+      return res.sendStatus(422)
+  }
+  }
+
+
 
   let visibleMessages = messages.filter((m) =>
     m.user === user ||
