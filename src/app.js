@@ -26,32 +26,26 @@ try {
 
 
 server.post("/participants", async (req, res) => {
-  const participant = req.body
+  const {name} = req.body
 
   const participantSchema = joi.object({
     name: joi.string().required()
   })
 
-  const validation = participantSchema.validate(participant, { pick: "name", abortEarly: false })
+  const validation = participantSchema.validate({name})
   console.log(validation)
 
-  if (validation.error) {
-    const errors = validation.error.details.map((err) => {
-      return err.message
-    })
-    return res.status(422).send(errors)
-  }
-
-
+  if (validation.error) return res.status(422).send( validation.error.details)
+      
   try {
 
-    const nameExists = await db.collection("participants").findOne({ name: participant.name })
+    const nameExists = await db.collection("participants").findOne({ name })
 
     if (nameExists) return res.status(409).send("Esse nome já está cadastrado!")
 
-    await db.collection("participants").insertOne({ name: participant.name, lastStatus: Date.now() })
+    await db.collection("participants").insertOne({ name, lastStatus: Date.now() })
 
-    await db.collection("messages").insertOne({ from: participant.name, to: "Todos", text: "entra na sala...", type: "status", time: date })
+    await db.collection("messages").insertOne({ from: name, to: "Todos", text: "entra na sala...", type: "status", time: date })
     
     res.status(201).send("Usuário criado!")
 
@@ -89,14 +83,12 @@ server.post("/messages", async (req, res) => {
     return res.status(422).send(errors)
   }
 
-
-
   try {
     let userExists = await db.collection("participants").findOne({ name: user })
 
     if(!userExists) return res.sendStatus(422)
 
-    await db.collection("messages").insertOne({ from: user, to: message.to, text: message.text, type: message.type, time: date })
+    await db.collection("messages").insertOne({ from: user, to , text, type, time: date })
 
     res.status(201).send("Mensagem enviada!")
 
